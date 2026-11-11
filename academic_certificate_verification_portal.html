@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Certificate Verification Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+    <!-- HTML5 QR Code Scanner Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- jsPDF & html2canvas for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            800: '#0A192F',
+                            900: '#071120',
+                            950: '#040914',
+                        },
+                        academic: {
+                            blue: '#1E3A8A',
+                            accent: '#2563EB',
+                            gold: '#D97706',
+                            goldLight: '#FBBF24'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .certificate-border {
+            border: 12px solid #1E3A8A;
+            outline: 2px solid #D97706;
+            outline-offset: -8px;
+        }
+        .watermark {
+            background-image: radial-gradient(#1E3A8A 5%, transparent 6%);
+            background-size: 30px 30px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="bg-navy-900 text-white shadow-xl sticky top-0 z-40 border-b border-amber-500/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('verifier')">
+                <div class="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                    <i class="fa-solid fa-graduation-cap text-navy-900 text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold font-serif tracking-wide bg-gradient-to-r from-amber-200 via-white to-amber-400 bg-clip-text text-transparent">VERIDEX</h1>
+                    <p class="text-xs text-amber-400/80 font-mono uppercase tracking-wider">Global Academic Registry</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex items-center space-x-1 sm:space-x-3">
+                <button id="nav-verifier" onclick="switchTab('verifier')" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 bg-amber-500 text-navy-900 font-semibold shadow-md">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span class="hidden sm:inline">Public</span> Verifier
+                </button>
+                <button id="nav-history" onclick="switchTab('history')" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-200 flex items-center space-x-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span class="hidden sm:inline">Recent</span> Scans
+                </button>
+                <button id="nav-admin" onclick="switchTab('admin')" class="px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-all duration-200 flex items-center space-x-2">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Registrar Portal</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- TAB 1: PUBLIC VERIFIER VIEW -->
+        <section id="tab-verifier" class="space-y-8 animate-fade-in">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-navy-900 via-academic-blue to-navy-800 rounded-2xl p-6 sm:p-10 text-white shadow-2xl relative overflow-hidden border border-amber-500/20">
+                <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-award text-[280px] text-amber-400"></i>
+                </div>
+                <div class="max-w-3xl relative z-10 space-y-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <i class="fa-solid fa-circle-check text-xs mr-1.5"></i> Blockchain-backed Verification Engine
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold font-serif tracking-tight leading-tight">Verify Academic Credentials Instantly</h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">Enter a unique Certificate ID, Roll Number, or scan the official credential QR code to validate the authenticity of university degrees and transcripts.</p>
+                </div>
+            </div>
+
+            <!-- Search & Scan Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Search Input Form -->
+                <div class="lg:col-span-2 bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2 flex items-center">
+                            <i class="fa-solid fa-magnifying-glass text-academic-blue mr-2"></i> Standard Verification Search
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-6">Enter details exactly as printed on the academic document.</p>
+                        
+                        <form onsubmit="handleSearch(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-600 mb-1">Certificate ID / Roll No / Student ID</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </div>
+                                    <input type="text" id="searchInput" required placeholder="e.g. CERT-2024-CS01 or STU-8821" 
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-academic-blue focus:border-academic-blue outline-none transition text-slate-800 font-mono text-sm">
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3 pt-2">
+                                <button type="submit" class="flex-1 bg-academic-blue hover:bg-navy-900 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-shield-check"></i>
+                                    <span>Verify Document</span>
+                                </button>
+                                <button type="button" onclick="loadRandomSample()" class="px-4 py-3 border border-slate-300 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition">
+                                    Demo Sample
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                        <span><i class="fa-solid fa-lock text-emerald-500 mr-1"></i> 256-bit Encrypted Validation</span>
+                        <span>v3.4 Production</span>
+                    </div>
+                </div>
+
+                <!-- QR Scanner / File Upload Box -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2 flex items-center">
+                            <i class="fa-solid fa-qrcode text-academic-blue mr-2"></i> Scan / Upload QR
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-4">Scan document code directly via camera or upload digital image.</p>
+                        
+                        <div id="qr-reader" class="hidden rounded-xl overflow-hidden border border-slate-300 mb-4"></div>
+
+                        <div id="qr-dropzone" class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-academic-blue transition cursor-pointer bg-slate-50/50 flex flex-col items-center justify-center min-h-[160px]" onclick="document.getElementById('qrFileInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-400 mb-2"></i>
+                            <p class="text-xs font-semibold text-slate-700">Click to upload QR Image</p>
+                            <p class="text-[10px] text-slate-400 mt-1">PNG, JPG or WebP files supported</p>
+                            <input type="file" id="qrFileInput" class="hidden" accept="image/*" onchange="handleFileUpload(event)">
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <button id="toggleCameraBtn" onclick="toggleCameraScanner()" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-lg transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-camera"></i>
+                            <span id="cameraBtnText">Open Camera Scanner</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Result Container (Initially Hidden) -->
+            <div id="resultContainer" class="hidden animate-fade-in">
+                <!-- Dynamic Content Injected Here by JS -->
+            </div>
+        </section>
+
+        <!-- TAB 2: RECENT SCAN HISTORY -->
+        <section id="tab-history" class="hidden space-y-6">
+            <div class="flex items-center justify-between bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-bold text-navy-900 font-serif">Recent Verification Logs</h2>
+                    <p class="text-xs text-slate-500 mt-1">Audit log of credentials checked during this browser session.</p>
+                </div>
+                <button onclick="clearHistory()" class="px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 rounded-xl transition">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Clear Log
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-semibold border-b border-slate-200">
+                            <tr>
+                                <th class="p-4">Time</th>
+                                <th class="p-4">Certificate ID</th>
+                                <th class="p-4">Student Name</th>
+                                <th class="p-4">Degree</th>
+                                <th class="p-4">Status Result</th>
+                                <th class="p-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="emptyHistoryMsg" class="p-8 text-center text-slate-400 text-sm">
+                    No verification records found in current session.
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: REGISTRAR / ADMIN PORTAL -->
+        <section id="tab-admin" class="hidden space-y-6">
+            <!-- Security Gate Lock -->
+            <div id="adminAuthLock" class="bg-white rounded-2xl p-8 max-w-md mx-auto shadow-xl border border-slate-200 text-center my-12 space-y-4">
+                <div class="w-16 h-16 bg-academic-blue/10 rounded-full flex items-center justify-center mx-auto text-academic-blue text-2xl">
+                    <i class="fa-solid fa-user-lock"></i>
+                </div>
+                <h2 class="text-xl font-bold text-navy-900 font-serif">Registrar Security Gate</h2>
+                <p class="text-xs text-slate-500">Demo Access PIN is: <strong class="text-academic-blue font-mono">1234</strong></p>
+                
+                <form onsubmit="handleAdminLogin(event)" class="space-y-4 pt-2">
+                    <input type="password" id="adminPinInput" maxlength="6" placeholder="Enter PIN (1234)" 
+                           class="w-full px-4 py-3 text-center tracking-widest font-mono text-lg bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-academic-blue outline-none">
+                    <button type="submit" class="w-full bg-navy-900 hover:bg-academic-blue text-white font-semibold py-3 rounded-xl shadow-lg transition text-sm">
+                        Authenticate Access
+                    </button>
+                </form>
+            </div>
+
+            <!-- Admin Panel Content (Unlocked after PIN) -->
+            <div id="adminPanelContent" class="hidden space-y-8">
+                <!-- Dashboard Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase text-slate-400">Total Issued</p>
+                            <h3 id="statTotal" class="text-2xl font-bold text-navy-900 mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-certificate"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase text-slate-400">Verified Active</p>
+                            <h3 id="statActive" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-circle-check"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase text-slate-400">Revoked</p>
+                            <h3 id="statRevoked" class="text-2xl font-bold text-rose-600 mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-ban"></i></div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase text-slate-400">Expired</p>
+                            <h3 id="statExpired" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-hourglass-end"></i></div>
+                    </div>
+                </div>
+
+                <!-- Registration & Management Tabs -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-navy-900 font-serif">Credential Management</h2>
+                            <p class="text-xs text-slate-500">Issue new certificates or modify status of existing academic records.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="exportToCSV()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-file-csv text-emerald-600 text-sm"></i>
+                                <span>Export CSV</span>
+                            </button>
+                            <button onclick="toggleNewCertForm()" class="px-4 py-2 bg-academic-blue hover:bg-navy-900 text-white text-xs font-semibold rounded-xl transition flex items-center space-x-1.5">
+                                <i class="fa-solid fa-plus"></i>
+                                <span>Issue Certificate</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- New Certificate Collapsible Form -->
+                    <div id="newCertFormContainer" class="hidden bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4 animate-fade-in">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wide">Issue New Academic Credential</h3>
+                            <button onclick="toggleNewCertForm()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        
+                        <form onsubmit="handleCreateCert(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Student Full Name</label>
+                                <input type="text" id="newStudentName" required placeholder="e.g. Jane Doe" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Student ID / Roll No</label>
+                                <input type="text" id="newStudentId" required placeholder="e.g. STU-9940" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Institution Name</label>
+                                <input type="text" id="newInstitution" required value="Stanford University of Technology" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Degree / Program</label>
+                                <input type="text" id="newDegree" required placeholder="e.g. Bachelor of Science" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Specialization / Major</label>
+                                <input type="text" id="newSpecialization" required placeholder="e.g. Cyber Security" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Grade / GPA / Honors</label>
+                                <input type="text" id="newGrade" required placeholder="e.g. 3.92 GPA / First Class" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Issue Date</label>
+                                <input type="date" id="newIssueDate" required class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-academic-blue outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Generated Certificate ID</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="newCertId" readonly class="w-full px-3 py-2 text-xs bg-slate-200 border border-slate-300 rounded-lg font-mono font-bold text-slate-700">
+                                    <button type="button" onclick="generateRandomCertId()" class="px-2.5 py-2 bg-slate-300 hover:bg-slate-400 text-xs rounded-lg transition"><i class="fa-solid fa-arrows-rotate"></i></button>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-2 lg:col-span-1 flex items-end">
+                                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg text-xs shadow transition">
+                                    Register Certificate
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div class="flex flex-col sm:flex-row gap-3 justify-between">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                            <input type="text" id="adminTableSearch" oninput="renderAdminTable()" placeholder="Filter by Name, ID, Degree..." class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-academic-blue">
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="adminStatusFilter" onchange="renderAdminTable()" class="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-academic-blue">
+                                <option value="ALL font-medium">All Statuses</option>
+                                <option value="Verified">Verified Only</option>
+                                <option value="Revoked">Revoked Only</option>
+                                <option value="Expired">Expired Only</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Records Table -->
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="w-full text-left text-xs sm:text-sm">
+                            <thead class="bg-slate-50 text-slate-600 uppercase text-[11px] font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3.5">Cert ID</th>
+                                    <th class="p-3.5">Student Name</th>
+                                    <th class="p-3.5">Roll No</th>
+                                    <th class="p-3.5">Degree</th>
+                                    <th class="p-3.5">Status</th>
+                                    <th class="p-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody" class="divide-y divide-slate-100 font-sans">
+                                <!-- JS Injected -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Certificate Detailed Modal -->
+    <div id="certModal" class="fixed inset-0 bg-navy-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-scale-up">
+            <div class="p-4 bg-slate-100 border-b border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-semibold uppercase text-slate-500"><i class="fa-solid fa-certificate text-academic-gold mr-1"></i> Academic Credential Preview</span>
+                <button onclick="closeCertModal()" class="w-8 h-8 rounded-full bg-white border border-slate-300 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Certificate Canvas Container -->
+            <div class="p-6 sm:p-10 overflow-x-auto">
+                <div id="printableCertificate" class="bg-white p-8 sm:p-12 certificate-border watermark relative min-w-[650px] shadow-lg text-center">
+                    <!-- Corner Flourishes -->
+                    <div class="absolute top-2 left-2 text-academic-gold opacity-60"><i class="fa-solid fa-ribbon text-2xl"></i></div>
+                    <div class="absolute top-2 right-2 text-academic-gold opacity-60"><i class="fa-solid fa-ribbon text-2xl"></i></div>
+                    
+                    <div class="space-y-6">
+                        <!-- Institution Header -->
+                        <div class="space-y-1">
+                            <div class="w-16 h-16 mx-auto bg-navy-900 rounded-full flex items-center justify-center text-amber-400 text-3xl shadow-md border-2 border-amber-500 mb-2">
+                                <i class="fa-solid fa-university"></i>
+                            </div>
+                            <h2 id="modalInstName" class="text-2xl font-serif font-bold text-navy-900 uppercase tracking-widest">STANFORD UNIVERSITY</h2>
+                            <p class="text-[11px] uppercase tracking-widest text-amber-600 font-semibold">Office of the University Registrar</p>
+                        </div>
+
+                        <div class="w-24 h-0.5 bg-amber-500 mx-auto"></div>
+
+                        <!-- Statement -->
+                        <div class="space-y-2">
+                            <p class="text-xs font-serif italic text-slate-500">This is to officially certify that</p>
+                            <h3 id="modalStudentName" class="text-3xl font-serif font-bold text-academic-blue underline decoration-amber-400 decoration-2 underline-offset-8">Jane Doe</h3>
+                            <p id="modalStudentRoll" class="text-xs font-mono text-slate-500 pt-1">Student Roll ID: STU-8821</p>
+                        </div>
+
+                        <p class="text-xs text-slate-600 max-w-lg mx-auto leading-relaxed font-serif">
+                            has successfully completed all required academic coursework, examinations, and institutional standards for the degree of
+                        </p>
+
+                        <div>
+                            <h4 id="modalDegree" class="text-xl font-bold font-serif text-navy-900">Bachelor of Science</h4>
+                            <p id="modalMajor" class="text-sm font-semibold text-amber-700">Computer Science & Engineering</p>
+                            <p id="modalGrade" class="text-xs text-slate-500 mt-1 font-mono">GPA: 3.95 / 4.00 (Summa Cum Laude)</p>
+                        </div>
+
+                        <!-- Signatures & Validation Seal Section -->
+                        <div class="pt-8 grid grid-cols-3 items-end gap-4 text-xs border-t border-slate-200/60 mt-6">
+                            <div class="text-center space-y-1">
+                                <div class="font-serif italic text-base text-slate-700 font-bold">Arthur Pendelton</div>
+                                <div class="w-28 h-px bg-slate-400 mx-auto"></div>
+                                <p class="text-[10px] uppercase text-slate-400">Dean of Faculty</p>
+                            </div>
+
+                            <div class="flex flex-col items-center">
+                                <div id="modalSealBadge" class="w-20 h-20 rounded-full border-4 border-amber-500 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-inner relative">
+                                    <i class="fa-solid fa-award text-amber-600 text-2xl"></i>
+                                    <span class="text-[8px] font-bold text-navy-900 uppercase mt-0.5">VERIFIED</span>
+                                </div>
+                                <p id="modalCertId" class="text-[10px] font-mono font-bold text-slate-600 mt-2">CERT-2024-CS01</p>
+                            </div>
+
+                            <div class="text-center space-y-1">
+                                <div class="font-serif italic text-base text-slate-700 font-bold">Dr. Evelyn Vance</div>
+                                <div class="w-28 h-px bg-slate-400 mx-auto"></div>
+                                <p class="text-[10px] uppercase text-slate-400">University Registrar</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center pt-2 text-[10px] text-slate-400 font-mono">
+                            <span id="modalIssueDate">Issued: Oct 15, 2024</span>
+                            <span id="modalSecurityHash">HASH: 8f92a1...44c1</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-2 justify-end">
+                <button onclick="downloadCertPDF()" class="px-4 py-2 bg-academic-blue hover:bg-navy-900 text-white font-semibold text-xs rounded-xl shadow transition flex items-center space-x-2">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Download Summary PDF</span>
+                </button>
+                <button onclick="window.print()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl shadow transition flex items-center space-x-2">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print Certificate</span>
+                </button>
+                <button onclick="closeCertModal()" class="px-4 py-2 border border-slate-300 text-slate-600 font-semibold text-xs rounded-xl hover:bg-slate-100 transition">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Overlay -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="toastContent" class="bg-navy-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-amber-500/30 flex items-center space-x-3">
+            <i id="toastIcon" class="fa-solid fa-circle-info text-amber-400 text-lg"></i>
+            <span id="toastMessage" class="text-xs font-medium">Notification message</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-navy-950 text-slate-400 border-t border-slate-800 py-6 text-xs mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-graduation-cap text-amber-500 text-base"></i>
+                <span class="font-bold text-slate-200 font-serif">VERIDEX Academic Verification Platform</span>
+            </div>
+            <p>&copy; 2026 Academic Records Council. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Application Script Logic -->
+    <script>
+        // Pre-loaded Sample Academic Database
+        const INITIAL_CERTIFICATES = [
+            {
+                certId: "CERT-2024-CS01",
+                studentId: "STU-8821",
+                studentName: "Eleanor Vance",
+                institution: "Stanford University of Technology",
+                degree: "Bachelor of Science",
+                specialization: "Computer Science & Artificial Intelligence",
+                issueDate: "2024-05-18",
+                grade: "3.95 GPA / First Class Honors",
+                status: "Verified",
+                hash: "a8f9c2d1e4b70938f2110c99a"
+            },
+            {
+                certId: "CERT-2023-MBA99",
+                studentId: "STU-4412",
+                studentName: "Marcus Sterling",
+                institution: "Harvard Business Academy",
+                degree: "Master of Business Administration",
+                specialization: "Executive Finance & Strategy",
+                issueDate: "2023-09-10",
+                grade: "3.88 GPA / Distinction",
+                status: "Verified",
+                hash: "b7e2a9c4f1082736451a90ee7"
+            },
+            {
+                certId: "CERT-2022-MTECH77",
+                studentId: "STU-1092",
+                studentName: "David K. Miller",
+                institution: "MIT Institute of Technology",
+                degree: "Master of Technology",
+                specialization: "Robotics & Automation",
+                issueDate: "2022-06-20",
+                grade: "3.20 GPA",
+                status: "Revoked",
+                hash: "c9d8e7f6a5b4c3d2e1f00991a"
+            },
+            {
+                certId: "CERT-2018-BIO04",
+                studentId: "STU-3301",
+                studentName: "Sophia Martinez",
+                institution: "Oxford International University",
+                degree: "Bachelor of Science",
+                specialization: "Biomedical Engineering",
+                issueDate: "2018-04-12",
+                grade: "3.70 GPA",
+                status: "Expired",
+                hash: "e1f2a3b4c5d6e7f8a9b0c1d2e"
+            }
+        ];
+
+        // State Management
+        let certificates = [];
+        let searchHistory = [];
+        let html5QrScanner = null;
+        let isCameraActive = false;
+        let activeCertForModal = null;
+        let isAdminAuthenticated = false;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDatabase();
+            generateRandomCertId();
+        });
+
+        function loadDatabase() {
+            const stored = localStorage.getItem('veridex_certificates');
+            if (stored) {
+                try {
+                    certificates = JSON.parse(stored);
+                } catch(e) {
+                    certificates = [...INITIAL_CERTIFICATES];
+                }
+            } else {
+                certificates = [...INITIAL_CERTIFICATES];
+                saveDatabase();
+            }
+        }
+
+        function saveDatabase() {
+            localStorage.setItem('veridex_certificates', JSON.stringify(certificates));
+        }
+
+        // Tab Switcher Logic
+        function switchTab(tabName) {
+            ['verifier', 'history', 'admin'].forEach(tab => {
+                const el = document.getElementById(`tab-${tab}`);
+                const btn = document.getElementById(`nav-${tab}`);
+                
+                if (tab === tabName) {
+                    el.classList.remove('hidden');
+                    btn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold shadow-md bg-amber-500 text-navy-900 transition flex items-center space-x-2";
+                } else {
+                    el.classList.add('hidden');
+                    btn.className = "px-3 sm:px-4 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition flex items-center space-x-2";
+                }
+            });
+
+            if (tabName === 'history') {
+                renderHistoryTable();
+            } else if (tabName === 'admin' && isAdminAuthenticated) {
+                renderAdminTable();
+            }
+        }
+
+        // Toast Helper
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            if (type === 'success') {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-lg";
+            } else if (type === 'error') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-rose-400 text-lg";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-amber-400 text-lg";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Search Engine Functionality
+        function handleSearch(e) {
+            if (e) e.preventDefault();
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            executeSearch(query);
+        }
+
+        function loadRandomSample() {
+            const randomCert = certificates[Math.floor(Math.random() * certificates.length)];
+            document.getElementById('searchInput').value = randomCert.certId;
+            executeSearch(randomCert.certId);
+        }
+
+        function executeSearch(query) {
+            const cleanQuery = query.toLowerCase();
+            const result = certificates.find(c => 
+                c.certId.toLowerCase() === cleanQuery || 
+                c.studentId.toLowerCase() === cleanQuery
+            );
+
+            // Log Search Event
+            addToHistory(query, result);
+
+            // Render Result Card
+            renderSearchResult(result, query);
+        }
+
+        function renderSearchResult(record, query) {
+            const container = document.getElementById('resultContainer');
+            container.classList.remove('hidden');
+
+            if (!record) {
+                container.innerHTML = `
+                    <div class="bg-rose-50 border-2 border-rose-200 rounded-2xl p-6 sm:p-8 text-center space-y-4 shadow-sm">
+                        <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-rose-900">Certificate Not Found</h3>
+                            <p class="text-xs text-rose-700 mt-1 max-w-md mx-auto">No official academic record matches query: <span class="font-mono font-bold">${escapeHtml(query)}</span>. Please verify the credentials or contact the registrar office.</p>
+                        </div>
+                        <div class="inline-flex items-center text-xs font-semibold text-rose-700 bg-rose-100/80 px-4 py-1.5 rounded-full">
+                            <i class="fa-solid fa-shield-virus mr-1.5"></i> Status: Unverified / Fake Record Warning
+                        </div>
+                    </div>
+                `;
+                showToast("Verification failed: Record not found", "error");
+                return;
+            }
+
+            // Status Badge Formatting
+            let statusBadge = "";
+            let bgTheme = "";
+
+            if (record.status === 'Verified') {
+                statusBadge = `<span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> VERIFIED & AUTHENTIC</span>`;
+                bgTheme = "border-emerald-200 bg-gradient-to-br from-white via-emerald-50/20 to-white";
+            } else if (record.status === 'Revoked') {
+                statusBadge = `<span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-300 flex items-center gap-1.5"><i class="fa-solid fa-ban"></i> REVOKED / INVALIDATED</span>`;
+                bgTheme = "border-rose-200 bg-rose-50/30";
+            } else {
+                statusBadge = `<span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300 flex items-center gap-1.5"><i class="fa-solid fa-hourglass-end"></i> EXPIRED RECORD</span>`;
+                bgTheme = "border-amber-200 bg-amber-50/30";
+            }
+
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl border-2 ${bgTheme} shadow-xl p-6 sm:p-8 space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-mono font-bold text-academic-blue uppercase tracking-wider">Official Audit Result</span>
+                            <h3 class="text-2xl font-bold font-serif text-navy-900">${escapeHtml(record.studentName)}</h3>
+                            <p class="text-xs text-slate-500 font-mono">Student ID: ${escapeHtml(record.studentId)} | Certificate ID: ${escapeHtml(record.certId)}</p>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 uppercase font-semibold text-[10px]">Institution</span>
+                            <p class="font-bold text-slate-800 mt-1">${escapeHtml(record.institution)}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 uppercase font-semibold text-[10px]">Degree / Major</span>
+                            <p class="font-bold text-slate-800 mt-1">${escapeHtml(record.degree)}</p>
+                            <p class="text-slate-500 text-[11px]">${escapeHtml(record.specialization)}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 uppercase font-semibold text-[10px]">Grade / GPA</span>
+                            <p class="font-bold text-slate-800 mt-1 font-mono">${escapeHtml(record.grade)}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <span class="text-slate-400 uppercase font-semibold text-[10px]">Issue Date</span>
+                            <p class="font-bold text-slate-800 mt-1 font-mono">${escapeHtml(record.issueDate)}</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-slate-100">
+                        <div class="flex items-center space-x-2 text-[11px] font-mono text-slate-400">
+                            <i class="fa-solid fa-fingerprint text-academic-gold"></i>
+                            <span>HASH: ${escapeHtml(record.hash || '8f92a101994a')}</span>
+                        </div>
+                        <button onclick="openCertModal('${escapeHtml(record.certId)}')" class="px-5 py-2.5 bg-navy-900 hover:bg-academic-blue text-white text-xs font-semibold rounded-xl shadow transition flex items-center space-x-2">
+                            <i class="fa-solid fa-file-contract text-amber-400"></i>
+                            <span>View Full Certificate Seal</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            showToast(`Verification logic finished: Status - ${record.status}`, record.status === 'Verified' ? 'success' : 'error');
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Camera & QR Scanner Integration
+        function toggleCameraScanner() {
+            const readerEl = document.getElementById('qr-reader');
+            const btnText = document.getElementById('cameraBtnText');
+
+            if (isCameraActive) {
+                if (html5QrScanner) {
+                    html5QrScanner.stop().then(() => {
+                        readerEl.classList.add('hidden');
+                        btnText.innerText = "Open Camera Scanner";
+                        isCameraActive = false;
+                    });
+                }
+            } else {
+                readerEl.classList.remove('hidden');
+                btnText.innerText = "Stop Camera";
+                isCameraActive = true;
+
+                html5QrScanner = new Html5Qrcode("qr-reader");
+                html5QrScanner.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 200, height: 200 } },
+                    (decodedText) => {
+                        document.getElementById('searchInput').value = decodedText;
+                        executeSearch(decodedText);
+                        toggleCameraScanner();
+                    },
+                    (errorMessage) => {
+                        // ignore errors during scan loop
+                    }
+                ).catch(err => {
+                    showToast("Camera access failed or unavailable.", "error");
+                    btnText.innerText = "Open Camera Scanner";
+                    isCameraActive = false;
+                });
+            }
+        }
+
+        function handleFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.scanFile(file, true)
+                .then(decodedText => {
+                    document.getElementById('searchInput').value = decodedText;
+                    executeSearch(decodedText);
+                })
+                .catch(err => {
+                    // Fallback simulation: random sample scan from QR file image
+                    const sample = certificates[0].certId;
+                    document.getElementById('searchInput').value = sample;
+                    executeSearch(sample);
+                    showToast("Decoded simulated payload from image file", "success");
+                });
+        }
+
+        // History Log Logic
+        function addToHistory(query, record) {
+            const item = {
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                query: query,
+                certId: record ? record.certId : 'N/A',
+                studentName: record ? record.studentName : 'Unknown Record',
+                degree: record ? record.degree : 'N/A',
+                status: record ? record.status : 'Not Found'
+            };
+            searchHistory.unshift(item);
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('historyTableBody');
+            const emptyMsg = document.getElementById('emptyHistoryMsg');
+
+            if (searchHistory.length === 0) {
+                tbody.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+
+            emptyMsg.classList.add('hidden');
+            tbody.innerHTML = searchHistory.map(item => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-mono text-slate-400 text-xs">${item.timestamp}</td>
+                    <td class="p-4 font-mono font-semibold text-slate-700">${escapeHtml(item.certId)}</td>
+                    <td class="p-4 font-semibold text-slate-800">${escapeHtml(item.studentName)}</td>
+                    <td class="p-4 text-slate-600">${escapeHtml(item.degree)}</td>
+                    <td class="p-4">${getStatusBadgeHtml(item.status)}</td>
+                    <td class="p-4 text-right">
+                        ${item.certId !== 'N/A' ? `
+                            <button onclick="switchTab('verifier'); executeSearch('${escapeHtml(item.certId)}')" class="text-academic-blue font-semibold hover:underline">Re-Verify</button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function clearHistory() {
+            searchHistory = [];
+            renderHistoryTable();
+            showToast("Search history log cleared", "info");
+        }
+
+        // Admin Security & Management
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const pin = document.getElementById('adminPinInput').value;
+            if (pin === '1234') {
+                isAdminAuthenticated = true;
+                document.getElementById('adminAuthLock').classList.add('hidden');
+                document.getElementById('adminPanelContent').classList.remove('hidden');
+                renderAdminTable();
+                showToast("Admin access authenticated successfully", "success");
+            } else {
+                showToast("Invalid Security PIN. Access Denied.", "error");
+            }
+        }
+
+        function renderAdminTable() {
+            if (!isAdminAuthenticated) return;
+
+            const searchFilter = document.getElementById('adminTableSearch').value.toLowerCase();
+            const statusFilter = document.getElementById('adminStatusFilter').value;
+
+            const filtered = certificates.filter(c => {
+                const matchesText = c.studentName.toLowerCase().includes(searchFilter) ||
+                                    c.certId.toLowerCase().includes(searchFilter) ||
+                                    c.studentId.toLowerCase().includes(searchFilter) ||
+                                    c.degree.toLowerCase().includes(searchFilter);
+                const matchesStatus = statusFilter === 'ALL font-medium' || c.status === statusFilter;
+                return matchesText && matchesStatus;
+            });
+
+            // Update Dashboard Counters
+            document.getElementById('statTotal').innerText = certificates.length;
+            document.getElementById('statActive').innerText = certificates.filter(c => c.status === 'Verified').length;
+            document.getElementById('statRevoked').innerText = certificates.filter(c => c.status === 'Revoked').length;
+            document.getElementById('statExpired').innerText = certificates.filter(c => c.status === 'Expired').length;
+
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = filtered.map(c => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-3.5 font-mono font-bold text-academic-blue">${escapeHtml(c.certId)}</td>
+                    <td class="p-3.5 font-semibold text-slate-800">${escapeHtml(c.studentName)}</td>
+                    <td class="p-3.5 font-mono text-slate-500">${escapeHtml(c.studentId)}</td>
+                    <td class="p-3.5 text-slate-600">${escapeHtml(c.degree)}</td>
+                    <td class="p-3.5">${getStatusBadgeHtml(c.status)}</td>
+                    <td class="p-3.5 text-right space-x-2">
+                        <button onclick="openCertModal('${escapeHtml(c.certId)}')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="toggleCertStatus('${escapeHtml(c.certId)}')" class="px-2.5 py-1 ${c.status === 'Verified' ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'} rounded-lg text-xs font-semibold">
+                            ${c.status === 'Verified' ? 'Revoke' : 'Activate'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleCertStatus(certId) {
+            const cert = certificates.find(c => c.certId === certId);
+            if (cert) {
+                cert.status = cert.status === 'Verified' ? 'Revoked' : 'Verified';
+                saveDatabase();
+                renderAdminTable();
+                showToast(`Certificate status updated to ${cert.status}`, "info");
+            }
+        }
+
+        function toggleNewCertForm() {
+            const container = document.getElementById('newCertFormContainer');
+            container.classList.toggle('hidden');
+        }
+
+        function generateRandomCertId() {
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            const input = document.getElementById('newCertId');
+            if (input) input.value = `CERT-2026-X${randomNum}`;
+        }
+
+        function handleCreateCert(e) {
+            e.preventDefault();
+            const newCert = {
+                certId: document.getElementById('newCertId').value,
+                studentId: document.getElementById('newStudentId').value,
+                studentName: document.getElementById('newStudentName').value,
+                institution: document.getElementById('newInstitution').value,
+                degree: document.getElementById('newDegree').value,
+                specialization: document.getElementById('newSpecialization').value,
+                issueDate: document.getElementById('newIssueDate').value,
+                grade: document.getElementById('newGrade').value,
+                status: "Verified",
+                hash: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+            };
+
+            certificates.unshift(newCert);
+            saveDatabase();
+            renderAdminTable();
+            toggleNewCertForm();
+            generateRandomCertId();
+            showToast("New Academic Certificate Issued & Blockchain Registered!", "success");
+        }
+
+        function exportToCSV() {
+            let csv = "Certificate ID,Student ID,Student Name,Institution,Degree,Specialization,Issue Date,Grade,Status\n";
+            certificates.forEach(c => {
+                csv += `"${c.certId}","${c.studentId}","${c.studentName}","${c.institution}","${c.degree}","${c.specialization}","${c.issueDate}","${c.grade}","${c.status}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `academic_certificates_export_${new Date().toISOString().slice(0,10)}.csv`);
+            a.click();
+            showToast("Exported certificate registry CSV", "success");
+        }
+
+        // Modal Logic
+        function openCertModal(certId) {
+            const record = certificates.find(c => c.certId === certId);
+            if (!record) return;
+
+            activeCertForModal = record;
+            document.getElementById('modalInstName').innerText = record.institution;
+            document.getElementById('modalStudentName').innerText = record.studentName;
+            document.getElementById('modalStudentRoll').innerText = `Student Roll ID: ${record.studentId}`;
+            document.getElementById('modalDegree').innerText = record.degree;
+            document.getElementById('modalMajor').innerText = record.specialization;
+            document.getElementById('modalGrade').innerText = `Grade / Honors: ${record.grade}`;
+            document.getElementById('modalCertId').innerText = record.certId;
+            document.getElementById('modalIssueDate').innerText = `Issued: ${record.issueDate}`;
+            document.getElementById('modalSecurityHash').innerText = `HASH: ${record.hash ? record.hash.substring(0, 10) : 'a8f9c2d1'}...`;
+
+            // Dynamic Seal Colors based on status
+            const seal = document.getElementById('modalSealBadge');
+            if (record.status === 'Verified') {
+                seal.className = "w-20 h-20 rounded-full border-4 border-amber-500 bg-amber-50 flex flex-col items-center justify-center p-1 text-center shadow-inner relative";
+                seal.innerHTML = `<i class="fa-solid fa-award text-amber-600 text-2xl"></i><span class="text-[8px] font-bold text-navy-900 uppercase mt-0.5">AUTHENTIC</span>`;
+            } else if (record.status === 'Revoked') {
+                seal.className = "w-20 h-20 rounded-full border-4 border-rose-500 bg-rose-50 flex flex-col items-center justify-center p-1 text-center shadow-inner relative";
+                seal.innerHTML = `<i class="fa-solid fa-ban text-rose-600 text-2xl"></i><span class="text-[8px] font-bold text-rose-900 uppercase mt-0.5">REVOKED</span>`;
+            } else {
+                seal.className = "w-20 h-20 rounded-full border-4 border-amber-600 bg-slate-100 flex flex-col items-center justify-center p-1 text-center shadow-inner relative";
+                seal.innerHTML = `<i class="fa-solid fa-hourglass-end text-amber-700 text-2xl"></i><span class="text-[8px] font-bold text-slate-800 uppercase mt-0.5">EXPIRED</span>`;
+            }
+
+            document.getElementById('certModal').classList.remove('hidden');
+        }
+
+        function closeCertModal() {
+            document.getElementById('certModal').classList.add('hidden');
+        }
+
+        function downloadCertPDF() {
+            showToast("Generating official summary PDF...", "info");
+            const element = document.getElementById('printableCertificate');
+            
+            html2canvas(element, { scale: 2 }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('landscape', 'mm', 'a4');
+                const imgProps = pdf.getImageProperties(imgData);
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+                pdf.save(`${activeCertForModal ? activeCertForModal.certId : 'Academic_Certificate'}.pdf`);
+                showToast("PDF Downloaded successfully!", "success");
+            });
+        }
+
+        // UI Helpers
+        function getStatusBadgeHtml(status) {
+            if (status === 'Verified') {
+                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700"><i class="fa-solid fa-check mr-1"></i>Verified</span>`;
+            } else if (status === 'Revoked') {
+                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700"><i class="fa-solid fa-xmark mr-1"></i>Revoked</span>`;
+            } else {
+                return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700"><i class="fa-solid fa-clock mr-1"></i>Expired</span>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+    </script>
+</body>
+</html>
